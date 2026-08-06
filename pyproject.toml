@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tok-adapt"
+version = "0.1.0"
+description = "Adapt, extend, prune, and initialize Hugging Face tokenizers and LLM embedding layers for cross-lingual fine-tuning and domain adaptation."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "tok-adapt contributors" }]
+keywords = [
+    "tokenizer",
+    "vocabulary-expansion",
+    "embedding-initialization",
+    "cross-lingual",
+    "huggingface",
+    "nlp",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "transformers>=4.40",
+    "tokenizers>=0.19",
+    "torch>=2.1",
+    "sentencepiece>=0.1.99",
+    "click>=8.1",
+    "pydantic>=2.0",
+    "rich>=13.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.4", "pytest-cov>=4.1"]
+
+[project.scripts]
+tok-adapt = "tok_adapt.cli:cli"
+
+[tool.setuptools.packages.find]
+include = ["tok_adapt*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

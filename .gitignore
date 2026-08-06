@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Test / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Generated model outputs (large binaries — do not commit)
+expanded-model/
+aligned-model/
+pruned-model/
+*.safetensors
+*.bin
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
