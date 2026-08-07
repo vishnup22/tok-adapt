@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tok-adapt"
-version = "0.1.0"
-description = "Adapt, extend, prune, and initialize Hugging Face tokenizers and LLM embedding layers for cross-lingual fine-tuning and domain adaptation."
+version = "0.2.0"
+description = "End-to-end cross-lingual/domain adaptation pipeline: dedup, tokenizer/embedding adaptation, CPT/SFT/DPO training, evaluation, and quantized export."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "Apache-2.0" }
@@ -35,10 +35,29 @@ dependencies = [
     "click>=8.1",
     "pydantic>=2.0",
     "rich>=13.0",
+    "pyyaml>=6.0",
 ]
 
 [project.optional-dependencies]
 dev = ["pytest>=7.4", "pytest-cov>=4.1"]
+# Phase 1: dedup + language-ID filtering.
+dedup = ["datasketch>=1.6", "langdetect>=1.0.9"]
+# Phase 4: CPT + SFT + DPO/ORPO training loop.
+train = ["accelerate>=0.30", "peft>=0.11", "trl>=0.9", "bitsandbytes>=0.43; platform_system != 'Darwin'"]
+# Phase 5: downstream evaluation (BLEU/chrF++).
+eval = ["sacrebleu>=2.4"]
+# Phase 6: quantized export. optimum/optimum-onnx are pinned exactly: the
+# optimum-onnx 0.1.0 split has a lazy-import registration bug (worked
+# around in tok_adapt.export.onnx_export by force-importing model_configs),
+# and Python >=3.14 changed functools.partial to implement the descriptor
+# protocol, which breaks optimum's ExporterConfig on *any* version unless
+# tok_adapt's monkeypatch (also in onnx_export.py) is applied -- both are
+# handled, but only tested against this exact pin.
+export = ["gguf>=0.9", "optimum==2.1.0", "optimum-onnx==0.1.0", "onnx>=1.16", "onnxruntime>=1.18"]
+# vLLM has no native Windows build; install this group under WSL/Linux only.
+serve = ["vllm>=0.5; sys_platform == 'linux'"]
+# Everything needed to run examples/run_pipeline.py end to end (excludes serve/vllm).
+pipeline = ["tok-adapt[dedup,train,eval,export]"]
 
 [project.scripts]
 tok-adapt = "tok_adapt.cli:cli"

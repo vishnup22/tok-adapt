@@ -21,8 +21,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: pip
 
-      - name: Install tok-adapt (with dev deps)
-        run: pip install -e ".[dev]"
+      - name: Install tok-adapt (with dev + full pipeline deps)
+        run: pip install -e ".[dev,pipeline]"
 
       - name: Run test suite
         run: pytest tests/ -v --color=yes

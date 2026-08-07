@@ -21,8 +21,15 @@ htmlcov/
 expanded-model/
 aligned-model/
 pruned-model/
+cpt-model/
+sft-model/
+dpo-model/
+onnx-model/
+pipeline_out/
 *.safetensors
 *.bin
+*.gguf
+*.onnx
 
 # Editors / OS
 .vscode/
