@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Union
 
+import torch
 from datasets import Dataset
 from peft import LoraConfig, TaskType
 from transformers import PreTrainedModel, PreTrainedTokenizerFast
@@ -104,6 +105,7 @@ class PreferenceAligner:
         learning_rate: float = 5e-7,
         max_steps: int = -1,
         max_length: int = 512,
+        fp16: Optional[bool] = None,
     ) -> DPOResult:
         """Aligns the model on preference triples in ``data_path``.
 
@@ -118,12 +120,21 @@ class PreferenceAligner:
             max_steps: If >0, caps total optimizer steps (useful for
                 smoke tests) regardless of ``num_train_epochs``.
             max_length: Maximum tokenized sequence length (prompt+response).
+            fp16: Whether to train in fp16. Defaults to True if CUDA is
+                available, else False. ``bf16`` is always left off: TRL's
+                ``DPOConfig`` defaults it to True unconditionally, which
+                raises on CPU-only/non-Ampere hardware ("Your setup
+                doesn't support bf16/gpu") -- explicit fp16 is the more
+                broadly portable choice.
 
         Returns:
             A :class:`DPOResult` with the saved path and final train loss.
         """
         dataset = self._load_preferences(data_path)
         out_dir = Path(output_dir)
+
+        if fp16 is None:
+            fp16 = torch.cuda.is_available()
 
         config = DPOConfig(
             output_dir=str(out_dir),
@@ -135,6 +146,8 @@ class PreferenceAligner:
             max_length=max_length,
             save_strategy="no",
             report_to=[],
+            bf16=False,
+            fp16=fp16,
         )
         trainer = DPOTrainer(
             model=self.model,

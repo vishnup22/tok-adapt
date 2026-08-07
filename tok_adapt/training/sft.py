@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Union
 
+import torch
 from datasets import Dataset
 from peft import LoraConfig, TaskType
 from transformers import PreTrainedModel, PreTrainedTokenizerFast
@@ -101,6 +102,7 @@ class SupervisedFineTuner:
         learning_rate: float = 1e-5,
         max_steps: int = -1,
         max_length: int = 512,
+        fp16: Optional[bool] = None,
     ) -> SFTResult:
         """Fine-tunes on instruction/translation-pair data in ``data_path``.
 
@@ -114,12 +116,21 @@ class SupervisedFineTuner:
             max_steps: If >0, caps total optimizer steps (useful for
                 smoke tests) regardless of ``num_train_epochs``.
             max_length: Maximum tokenized sequence length.
+            fp16: Whether to train in fp16. Defaults to True if CUDA is
+                available, else False. ``bf16`` is always left off: TRL's
+                ``SFTConfig`` defaults it to True unconditionally, which
+                raises on CPU-only/non-Ampere hardware ("Your setup
+                doesn't support bf16/gpu") -- explicit fp16 is the more
+                broadly portable choice.
 
         Returns:
             An :class:`SFTResult` with the saved path and final train loss.
         """
         dataset = self._load_examples(data_path)
         out_dir = Path(output_dir)
+
+        if fp16 is None:
+            fp16 = torch.cuda.is_available()
 
         config = SFTConfig(
             output_dir=str(out_dir),
@@ -132,6 +143,8 @@ class SupervisedFineTuner:
             packing=False,
             save_strategy="no",
             report_to=[],
+            bf16=False,
+            fp16=fp16,
         )
         trainer = SFTTrainer(
             model=self.model,
