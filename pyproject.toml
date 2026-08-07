@@ -42,8 +42,20 @@ dependencies = [
 dev = ["pytest>=7.4", "pytest-cov>=4.1"]
 # Phase 1: dedup + language-ID filtering.
 dedup = ["datasketch>=1.6", "langdetect>=1.0.9"]
-# Phase 4: CPT + SFT + DPO/ORPO training loop.
-train = ["accelerate>=0.30", "peft>=0.11", "trl>=0.9", "bitsandbytes>=0.43; platform_system != 'Darwin'"]
+# Phase 4: CPT + SFT + DPO/ORPO training loop. torchao is not a direct
+# tok_adapt dependency -- we never use it -- but peft's LoRA dispatch chain
+# unconditionally probes for it on every get_peft_model() call, and raises
+# ImportError (instead of skipping) if a torchao *older* than peft's floor
+# is already installed (observed on Colab, which ships 0.10.0). Pinning a
+# compatible floor here forces an upgrade instead of leaving it to whatever
+# the host environment happened to preinstall.
+train = [
+    "accelerate>=0.30",
+    "peft>=0.11",
+    "trl>=0.9",
+    "torchao>=0.16",
+    "bitsandbytes>=0.43; platform_system != 'Darwin'",
+]
 # Phase 5: downstream evaluation (BLEU/chrF++).
 eval = ["sacrebleu>=2.4"]
 # Phase 6: quantized export. optimum/optimum-onnx are pinned exactly: the
